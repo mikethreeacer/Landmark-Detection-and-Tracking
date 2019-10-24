@@ -1,0 +1,63 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+vector<float> p = { 0.2, 0.2, 0.2, 0.2, 0.2 };
+vector<string> world = { "green", "red", "red", "green", "green" };
+vector<string> measurements = { "red", "green" };
+vector<int> motions = { 1, 1 };
+float pHit = 0.6;
+float pMiss = 0.2;
+float pExact = 0.8;
+float pOvershoot = 0.1;
+float pUndershoot = 0.1;
+
+vector<float> sense(vector<float> p, string Z);
+vector<float> move(vector<float> p, int U);
+
+int main() {
+	for (int i = 0; i < measurements.size(); ++i) {
+		p = sense(p, measurements[i]);
+		p = move(p, motions[i]);
+	}
+
+	for (int i = 0; i < p.size(); ++i) {
+		cout << p[i] << " ";
+	}
+	cout << endl;
+	return 0;
+}
+
+vector<float> sense(vector<float> p, string Z) {
+	vector<float> q;
+	float s;
+	for (int i = 0; i < p.size(); ++i) {
+		float hit = (Z == world[i]);
+		q.push_back(p[i] * (hit * pHit + (1 - hit) * pMiss));	
+	}
+	for (int i = 0; i < q.size(); ++i) {
+		if (i == 0) {
+			s = q[i];
+		}
+		else { s = s + q[i]; }
+	}
+
+	for (int i = 0; i < q.size(); ++i) {
+		q[i] = q[i] / s;
+	}
+	return q;
+}
+
+vector<float> move(vector<float> p, int U) {
+	vector<float> q;
+	float s;
+	for (int i = 0; i < p.size(); ++i) {
+		s = pExact * p[(i - U + p.size()) % p.size()];
+		s = s + pOvershoot * p[(i - U - 1 + p.size()) % p.size()];
+		s = s + pUndershoot * p[(i - U + 1 + p.size()) % p.size()];
+		q.push_back(s);
+	}
+	return q;
+}
